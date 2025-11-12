@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-# Load the trained model pipeline
+# Load model
 try:
     with open("best.pkl", "rb") as file:
         best_model = joblib.load(file)
@@ -10,9 +10,7 @@ except Exception as e:
     st.error(f"❌ Error loading model: {e}")
     st.stop()
 
-# Streamlit UI
 st.title("📊 Customer Churn Prediction")
-st.markdown("Provide the details below to check if a customer is likely to churn.")
 
 # User inputs
 gender = st.selectbox("Gender", ["Male", "Female"])
@@ -38,10 +36,10 @@ payment_method = st.selectbox(
 monthly_charges = st.number_input("Monthly Charges ($)", 0.0, 1000.0, 70.0)
 total_charges = st.number_input("Total Charges ($)", 0.0, 10000.0, 1000.0)
 
-# Prepare input DataFrame
-input_data = pd.DataFrame([{
+# Build DataFrame
+data = pd.DataFrame([{
     'gender': gender,
-    'SeniorCitizen': 1 if senior_citizen == "Yes" else 0,
+    'SeniorCitizen': senior_citizen,
     'Partner': partner,
     'Dependents': dependents,
     'tenure': tenure,
@@ -61,11 +59,52 @@ input_data = pd.DataFrame([{
     'TotalCharges': total_charges
 }])
 
-# Prediction button
+# Manual encoding (must match training preprocessing)
+def preprocess(df):
+    df = df.copy()
+
+    # Convert Yes/No to 1/0
+    yes_no_cols = ['Partner', 'Dependents', 'PhoneService', 'PaperlessBilling']
+    for col in yes_no_cols:
+        df[col] = df[col].map({'Yes': 1, 'No': 0})
+
+    # SeniorCitizen to numeric
+    df['SeniorCitizen'] = df['SeniorCitizen'].map({'Yes': 1, 'No': 0})
+
+    # Encode gender
+    df['gender'] = df['gender'].map({'Male': 1, 'Female': 0})
+
+    # Encode categorical features using simple mappings
+    mapping = {
+        'MultipleLines': {'No phone service': 0, 'No': 1, 'Yes': 2},
+        'InternetService': {'No': 0, 'DSL': 1, 'Fiber optic': 2},
+        'OnlineSecurity': {'No internet service': 0, 'No': 1, 'Yes': 2},
+        'OnlineBackup': {'No internet service': 0, 'No': 1, 'Yes': 2},
+        'DeviceProtection': {'No internet service': 0, 'No': 1, 'Yes': 2},
+        'TechSupport': {'No internet service': 0, 'No': 1, 'Yes': 2},
+        'StreamingTV': {'No internet service': 0, 'No': 1, 'Yes': 2},
+        'StreamingMovies': {'No internet service': 0, 'No': 1, 'Yes': 2},
+        'Contract': {'Month-to-month': 0, 'One year': 1, 'Two year': 2},
+        'PaymentMethod': {
+            'Electronic check': 0,
+            'Mailed check': 1,
+            'Bank transfer (automatic)': 2,
+            'Credit card (automatic)': 3
+        }
+    }
+
+    for col, map_dict in mapping.items():
+        df[col] = df[col].map(map_dict)
+
+    return df
+
+processed_data = preprocess(data)
+
+# Predict
 if st.button("🔮 Predict Churn"):
     try:
-        prediction = best_model.predict(input_data)[0]
-        prob = best_model.predict_proba(input_data)[0][1]
+        prediction = best_model.predict(processed_data)[0]
+        prob = best_model.predict_proba(processed_data)[0][1]
 
         st.subheader("📈 Prediction Result:")
         if prediction == 1:
