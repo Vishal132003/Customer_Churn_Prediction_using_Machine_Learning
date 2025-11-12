@@ -34,4 +34,4 @@ The dataset used is the [Telco Customer Churn Dataset]
 
 ### 📄 Author
 **Vishal Jadhav**  
-[LinkedIn](https://www.linkedin.com/in/vishal-jadhav-089013293/)) | [Email](mailto:vishaljadhav132003@gmail.com)
+[LinkedIn](https://www.linkedin.com/in/vishal-jadhav-089013293/) | [Email](mailto:vishaljadhav132003@gmail.com)
