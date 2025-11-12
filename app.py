@@ -1,113 +1,43 @@
 import streamlit as st
-import pandas as pd
-import numpy as np
-import joblib
-
-# -----------------------------
-# Load Model
-# -----------------------------
 import pickle
-with open('best.pkl', 'rb') as file:
-    model = pickle.load(file)
+import numpy as np
 
-# -----------------------------
-# Page Configuration
-# -----------------------------
-st.set_page_config(
-    page_title="Customer Churn Prediction",
-    page_icon="📊",
-    layout="centered"
-)
+# Load trained model
+with open('best_model.pkl', 'rb') as file:
+    best_model = pickle.load(file)
 
+# App title
+st.set_page_config(page_title="Customer Churn Prediction", page_icon="📊", layout="wide")
 st.title("📊 Customer Churn Prediction App")
-st.markdown(
-    """
-    <style>
-        .main {
-            background-color: #f8f9fa;
-        }
-        .stTextInput>div>div>input {
-            background-color: #ffffff;
-        }
-        .stButton>button {
-            background-color: #2e86de;
-            color: white;
-            border-radius: 10px;
-            height: 45px;
-            width: 200px;
-            font-weight: 600;
-        }
-        .stButton>button:hover {
-            background-color: #1b4f72;
-            color: white;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+st.markdown("### Predict whether a customer will churn or stay!")
 
-st.markdown("### 🧠 Enter Customer Details to Predict Churn")
+# Sidebar input section
+st.sidebar.header("🧾 Enter Customer Details")
 
-# -----------------------------
-# Input Section
-# -----------------------------
-col1, col2 = st.columns(2)
+gender = st.sidebar.selectbox("Gender", ["Male", "Female"])
+senior = st.sidebar.selectbox("Senior Citizen", ["Yes", "No"])
+partner = st.sidebar.selectbox("Partner", ["Yes", "No"])
+dependents = st.sidebar.selectbox("Dependents", ["Yes", "No"])
+tenure = st.sidebar.slider("Tenure (months)", 0, 72, 12)
+monthly_charges = st.sidebar.number_input("Monthly Charges", 0.0, 150.0, 70.0)
+total_charges = st.sidebar.number_input("Total Charges", 0.0, 10000.0, 2500.0)
 
-with col1:
-    gender = st.selectbox("Gender", ["Male", "Female"])
-    senior_citizen = st.selectbox("Senior Citizen", ["No", "Yes"])
-    partner = st.selectbox("Has Partner?", ["No", "Yes"])
-    dependents = st.selectbox("Has Dependents?", ["No", "Yes"])
-    tenure = st.slider("Tenure (Months)", 0, 72, 10)
-    phone_service = st.selectbox("Phone Service", ["No", "Yes"])
+# Convert categorical to numeric (example encoding)
+gender = 1 if gender == "Male" else 0
+senior = 1 if senior == "Yes" else 0
+partner = 1 if partner == "Yes" else 0
+dependents = 1 if dependents == "Yes" else 0
 
-with col2:
-    multiple_lines = st.selectbox("Multiple Lines", ["No", "Yes"])
-    internet_service = st.selectbox("Internet Service", ["DSL", "Fiber optic", "No"])
-    contract = st.selectbox("Contract Type", ["Month-to-month", "One year", "Two year"])
-    payment_method = st.selectbox("Payment Method", [
-        "Electronic check", "Mailed check", "Bank transfer (automatic)", "Credit card (automatic)"
-    ])
-    monthly_charges = st.number_input("Monthly Charges ($)", 10.0, 150.0, 70.0)
-    total_charges = st.number_input("Total Charges ($)", 0.0, 9000.0, 1000.0)
+# Input array
+features = np.array([[gender, senior, partner, dependents, tenure, monthly_charges, total_charges]])
 
-paperless_billing = st.selectbox("Paperless Billing", ["No", "Yes"])
+# Predict
+if st.sidebar.button("🔍 Predict"):
+    prediction = best_model.predict(features)
+    result = "Customer is likely to Churn ❌" if prediction[0] == 1 else "Customer is likely to Stay ✅"
+    
+    st.success(result)
 
-# -----------------------------
-# Prepare Input Data
-# -----------------------------
-if st.button("🔍 Predict Churn"):
-    input_data = pd.DataFrame({
-        'gender': [gender],
-        'SeniorCitizen': [1 if senior_citizen == 'Yes' else 0],
-        'Partner': [1 if partner == 'Yes' else 0],
-        'Dependents': [1 if dependents == 'Yes' else 0],
-        'tenure': [tenure],
-        'PhoneService': [1 if phone_service == 'Yes' else 0],
-        'MultipleLines': [1 if multiple_lines == 'Yes' else 0],
-        'InternetService': [internet_service],
-        'Contract': [contract],
-        'PaymentMethod': [payment_method],
-        'PaperlessBilling': [1 if paperless_billing == 'Yes' else 0],
-        'MonthlyCharges': [monthly_charges],
-        'TotalCharges': [total_charges]
-    })
-
-    # -----------------------------
-    # Prediction
-    # -----------------------------
-    prediction = model.predict(input_data)[0]
-    prob = model.predict_proba(input_data)[0][1]
-
-    # -----------------------------
-    # Display Result
-    # -----------------------------
-    st.markdown("---")
-    if prediction == 1:
-        st.error(f"⚠️ Customer is **likely to churn**.\n\n**Churn Probability:** {prob:.2%}")
-    else:
-        st.success(f"✅ Customer is **not likely to churn**.\n\n**Churn Probability:** {prob:.2%}")
-
-    st.markdown("---")
-    st.caption("Built with ❤️ using Streamlit and XGBoost")
-
+# Footer
+st.markdown("---")
+st.markdown("👨‍💻 *Developed by Vishal Jadhav*")
