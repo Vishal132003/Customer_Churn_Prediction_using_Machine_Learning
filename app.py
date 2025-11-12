@@ -1,43 +1,37 @@
 import streamlit as st
 import pickle
-import numpy as np
 
-# Load trained model
-with open('best_model.pkl', 'rb') as file:
+# Load the trained model from the file
+with open('best.pkl', 'rb') as file:
     best_model = pickle.load(file)
 
 # App title
-st.set_page_config(page_title="Customer Churn Prediction", page_icon="📊", layout="wide")
-st.title("📊 Customer Churn Prediction App")
-st.markdown("### Predict whether a customer will churn or stay!")
+st.title("Customer Churn Prediction App")
 
-# Sidebar input section
-st.sidebar.header("🧾 Enter Customer Details")
+# Input fields
+st.header("Enter Customer Details")
+gender = st.selectbox("Gender", ["Male", "Female"])
+senior_citizen = st.selectbox("Senior Citizen", ["Yes", "No"])
+tenure = st.number_input("Tenure (months)", min_value=0, max_value=100)
+monthly_charges = st.number_input("Monthly Charges", min_value=0.0)
+total_charges = st.number_input("Total Charges", min_value=0.0)
+contract = st.selectbox("Contract Type", ["Month-to-month", "One year", "Two year"])
 
-gender = st.sidebar.selectbox("Gender", ["Male", "Female"])
-senior = st.sidebar.selectbox("Senior Citizen", ["Yes", "No"])
-partner = st.sidebar.selectbox("Partner", ["Yes", "No"])
-dependents = st.sidebar.selectbox("Dependents", ["Yes", "No"])
-tenure = st.sidebar.slider("Tenure (months)", 0, 72, 12)
-monthly_charges = st.sidebar.number_input("Monthly Charges", 0.0, 150.0, 70.0)
-total_charges = st.sidebar.number_input("Total Charges", 0.0, 10000.0, 2500.0)
-
-# Convert categorical to numeric (example encoding)
+# Convert categorical to numeric
 gender = 1 if gender == "Male" else 0
-senior = 1 if senior == "Yes" else 0
-partner = 1 if partner == "Yes" else 0
-dependents = 1 if dependents == "Yes" else 0
+senior_citizen = 1 if senior_citizen == "Yes" else 0
+contract_type = {"Month-to-month": 0, "One year": 1, "Two year": 2}[contract]
 
-# Input array
-features = np.array([[gender, senior, partner, dependents, tenure, monthly_charges, total_charges]])
-
-# Predict
-if st.sidebar.button("🔍 Predict"):
+# Predict button
+if st.button("Predict Churn"):
+    features = [[gender, senior_citizen, tenure, monthly_charges, total_charges, contract_type]]
     prediction = best_model.predict(features)
-    result = "Customer is likely to Churn ❌" if prediction[0] == 1 else "Customer is likely to Stay ✅"
     
-    st.success(result)
+    if prediction[0] == 1:
+        st.error("⚠️ The customer is likely to churn.")
+    else:
+        st.success("✅ The customer is likely to stay.")
 
 # Footer
 st.markdown("---")
-st.markdown("👨‍💻 *Developed by Vishal Jadhav*")
+st.caption("Developed by Vishal Jadhav | Data Science Project")
