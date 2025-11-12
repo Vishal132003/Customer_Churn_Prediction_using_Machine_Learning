@@ -1,65 +1,41 @@
 import streamlit as st
-import pickle
-import numpy as np
+import pandas as pd
+import joblib
 
-# -------------------------------
-# Load the model safely
-# -------------------------------
+# Load model
 try:
     with open('best.pkl', 'rb') as file:
-        best_model = pickle.load(file)
-    st.success("✅ Model loaded successfully!")
+        best_model = joblib.load(file)
+    st.success("✅ Model loaded successfully")
 except Exception as e:
     st.error(f"❌ Error loading model: {e}")
-    st.stop()
 
-# -------------------------------
-# App UI Design
-# -------------------------------
-st.markdown(
-    """
-    <h1 style='text-align: center; color: #4CAF50;'>Customer Churn Prediction App</h1>
-    <p style='text-align: center; color: gray;'>Predict whether a customer will churn based on key details</p>
-    """,
-    unsafe_allow_html=True
-)
+st.title("📊 Customer Churn Prediction App")
+st.markdown("Predict whether a customer will churn based on their profile.")
 
-# Input form
-with st.form("churn_form"):
-    st.subheader("📋 Enter Customer Details")
+# Input fields
+st.header("📋 Enter Customer Details")
 
-    col1, col2 = st.columns(2)
+gender = st.selectbox("Gender", ["Male", "Female"])
+senior_citizen = st.selectbox("Senior Citizen", ["Yes", "No"])
+partner = st.selectbox("Has Partner", ["Yes", "No"])
+dependents = st.selectbox("Has Dependents", ["Yes", "No"])
+tenure = st.number_input("Tenure (in months)", min_value=0, max_value=100, value=12)
+phone_service = st.selectbox("Phone Service", ["Yes", "No"])
+multiple_lines = st.selectbox("Multiple Lines", ["Yes", "No", "No phone service"])
+internet_service = st.selectbox("Internet Service", ["DSL", "Fiber optic", "No"])
+online_security = st.selectbox("Online Security", ["Yes", "No", "No internet service"])
+online_backup = st.selectbox("Online Backup", ["Yes", "No", "No internet service"])
+device_protection = st.selectbox("Device Protection", ["Yes", "No", "No internet service"])
+tech_support = st.selectbox("Tech Support", ["Yes", "No", "No internet service"])
+streaming_tv = st.selectbox("Streaming TV", ["Yes", "No", "No internet service"])
+streaming_movies = st.selectbox("Streaming Movies", ["Yes", "No", "No internet service"])
+contract = st.selectbox("Contract Type", ["Month-to-month", "One year", "Two year"])
+paperless_billing = st.selectbox("Paperless Billing", ["Yes", "No"])
+payment_method = st.selectbox("Payment Method", [
+    "Electronic check", "Mailed check", "Bank transfer (automatic)", "Credit card (automatic)"
+])
+monthly_charges = st.number_input("Monthly Charges ($)", min_value=0.0, max_value=1000.0, value=70.0)
+total_charges = st.number_input("Total Charges ($)", min_value=0.0, max_value=10000.0, value=1000.0)
 
-    with col1:
-        gender = st.selectbox("Gender", ["Male", "Female"])
-        senior_citizen = st.selectbox("Senior Citizen", ["Yes", "No"])
-        tenure = st.number_input("Tenure (in months)", min_value=0, max_value=100, value=12)
-
-    with col2:
-        monthly_charges = st.number_input("Monthly Charges ($)", min_value=0.0, value=70.0)
-        total_charges = st.number_input("Total Charges ($)", min_value=0.0, value=1000.0)
-        contract = st.selectbox("Contract Type", ["Month-to-month", "One year", "Two year"])
-
-    submitted = st.form_submit_button("🔍 Predict Churn")
-
-# -------------------------------
-# Prediction
-# -------------------------------
-if submitted:
-    gender = 1 if gender == "Male" else 0
-    senior_citizen = 1 if senior_citizen == "Yes" else 0
-    contract_type = {"Month-to-month": 0, "One year": 1, "Two year": 2}[contract]
-
-    input_features = np.array([[gender, senior_citizen, tenure, monthly_charges, total_charges, contract_type]])
-    prediction = best_model.predict(input_features)
-
-    if prediction[0] == 1:
-        st.error("⚠️ The customer is **likely to churn**.")
-    else:
-        st.success("✅ The customer is **likely to stay**.")
-
-# -------------------------------
-# Footer
-# -------------------------------
-st.markdown("---")
-st.caption("Developed by Vishal Jadhav | Data Science Project")
+# Create DataFrame
