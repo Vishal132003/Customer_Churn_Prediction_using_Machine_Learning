@@ -24,8 +24,8 @@ The dataset used is the [Telco Customer Churn Dataset]
 - **Best Model:** XGBoost Classifier  
 - **Performance:** Achieved the highest accuracy and ROC-AUC among all models.  
 
-##Live Demo
--Try the deployed app:-https://customerchurnprediction-2yanxtemshozim2tjs.streamlit.app/
+## 🌐 Live Demo
+-🎯 Try the deployed app here: https://customerchurnprediction-2yanxtemshozim2tjs.streamlit.app/
 
 ## 📂 Dataset
 - **Source:** Telco Customer Churn Dataset - Kaggle:-https://www.kaggle.com/blastchar/telco-customer-churn)
