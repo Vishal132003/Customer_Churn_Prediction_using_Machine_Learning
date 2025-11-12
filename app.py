@@ -6,7 +6,9 @@ import joblib
 # -----------------------------
 # Load Model
 # -----------------------------
-model = joblib.load('best.pkl')  # or 'best_churn_model.joblib'
+import pickle
+with open('best.pkl', 'rb') as file:
+    model = pickle.load(file)
 
 # -----------------------------
 # Page Configuration
